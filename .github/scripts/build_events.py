@@ -227,6 +227,9 @@ def build():
             problems[num] = str(e)
             continue
         if end <= now:
+            when = start.astimezone(tz).strftime("%a %b %d, %I:%M %p")
+            problems[num] = (f"This event is already over (it's set for {when} {tzname}). "
+                             "Check the date; it has to be in the future to go on the board.")
             continue
         link, world_id, inst_id = parse_link(f.get("instance link (optional)", ""))
         events.append({
