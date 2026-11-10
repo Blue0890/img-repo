@@ -1,4 +1,20 @@
 {
-  "updated": "2026-11-10T00:47:19Z",
-  "events": []
+  "updated": "2026-11-10T01:21:57Z",
+  "events": [
+    {
+      "issue": 2,
+      "title": "This is not a real opening",
+      "group": "The Fifth Star",
+      "start": "2026-11-11T04:00:00Z",
+      "end": "2026-11-11T08:00:00Z",
+      "startUnix": 1794369600,
+      "endUnix": 1794384000,
+      "world": "Mafia Bar",
+      "worldId": "",
+      "instanceId": "",
+      "link": "",
+      "about": "This is still, a test, and not real.",
+      "flyer": ""
+    }
+  ]
 }
