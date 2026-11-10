@@ -61,8 +61,15 @@
   .card.g-fifth { --accent: var(--gold); }
   .card.g-eclipse { --accent: var(--red); }
   .card .art {
-    min-height: 170px; background: linear-gradient(160deg, var(--deep), #1b2560);
-    background-size: cover; background-position: center; position: relative;
+    min-height: 170px; position: relative; overflow: hidden; display: block;
+    background: linear-gradient(160deg, var(--deep), #1b2560);
+  }
+  .card .art .bg {
+    position: absolute; inset: -20px; background-size: cover; background-position: center;
+    filter: blur(18px) brightness(.55) saturate(1.2);
+  }
+  .card .art img {
+    position: relative; display: block; width: 100%; height: 100%; object-fit: contain;
   }
   .card .art.none {
     background:
@@ -107,7 +114,8 @@
   footer a { color: var(--dim); }
   @media (max-width: 620px) {
     .card { grid-template-columns: 1fr; }
-    .card .art { min-height: 180px; }
+    .card .art { min-height: 0; }
+    .card .art img { height: auto; max-height: 78vh; }
     .card .art.none { display: none; }
     .card .art::after { box-shadow: inset 0 -1px 0 var(--line); }
   }
@@ -184,7 +192,12 @@
       const card = document.createElement("article");
       card.className = "card " + groupClass(e.group);
       card.innerHTML = `
-        <div class="art${e.flyer ? "" : " none"}" ${e.flyer ? `style="background-image:url('${esc(e.flyer)}')"` : ""}></div>
+        ${e.flyer
+          ? `<a class="art" href="${esc(e.flyer)}" target="_blank" rel="noopener" aria-label="Open flyer">
+               <div class="bg" style="background-image:url('${esc(e.flyer)}')"></div>
+               <img src="${esc(e.flyer)}" alt="Flyer for ${esc(e.title)}" loading="lazy">
+             </a>`
+          : `<div class="art none"></div>`}
         <div class="body">
           <div class="group">${esc(e.group)} ${live ? '<span class="live">LIVE NOW</span>' : ""}</div>
           <h2>${esc(e.title)}</h2>
