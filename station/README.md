@@ -10,7 +10,7 @@ The images in the top of the repo are untouched. Worlds may be loading them by t
 ## Posting an event
 
 1. Open **Issues → New issue → ⭐ New Blue Star event** (or tap "Post an event" at the bottom of the events page).
-2. Fill it in. You can drag a flyer image straight into the Flyer box. Submit.
+2. Fill it in and submit. For a flyer, either attach an image in the Flyer box (wait until a link appears in the box before submitting) or, easier on a phone, **post the image as a comment** on the issue afterwards. The newest image you comment wins, so commenting a new one swaps the flyer.
 3. A minute or two later a comment appears on the issue: ✅ if it's on the board, or ⚠️ with what to fix.
 
 - **Change an event:** edit the issue. Paste the instance link in once the instance is open.

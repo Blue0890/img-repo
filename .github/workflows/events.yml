@@ -3,6 +3,8 @@ name: Update event board
 on:
   issues:
     types: [opened, edited, closed, reopened, deleted, labeled, unlabeled]
+  issue_comment:
+    types: [created, edited, deleted]   # posting an image in a comment sets the flyer
   schedule:
     - cron: "17 */3 * * *"   # every 3 hours: clears out events that have ended
   workflow_dispatch:

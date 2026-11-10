@@ -164,8 +164,22 @@ def first_image_url(s):
     m = re.search(r"!\[[^\]]*\]\((\S+?)\)", s or "") or re.search(r"<img[^>]+src=\"([^\"]+)\"", s or "")
     if m:
         return m[1]
-    m = re.search(r"https?://\S+\.(?:png|jpe?g|webp|gif)\b", s or "", re.I)
+    m = re.search(r"https?://\S+\.(?:png|jpe?g|webp|gif)\b", s or "", re.I) or \
+        re.search(r"https://github\.com/user-attachments/assets/[0-9a-fA-F-]+", s or "")
     return m[0] if m else ""
+
+
+def comment_flyer(number):
+    """Newest image posted in a comment by an allowed author (lets you add or swap a flyer by commenting)."""
+    if not TOKEN or os.environ.get("ISSUES_FILE"):
+        return ""
+    url = ""
+    for c in api(f"/repos/{REPO}/issues/{number}/comments?per_page=100"):
+        if c["user"]["login"].lower() in ALLOWED and MARKER not in (c.get("body") or ""):
+            found = first_image_url(c.get("body"))
+            if found:
+                url = found          # comments come oldest first, so the last one wins
+    return url
 
 
 # ---------------------------------------------------------------- flyers
@@ -246,7 +260,7 @@ def build():
             "link": link,
             "about": re.sub(r"\s+", " ", f.get("description (optional)", ""))[:200],
             "flyer": "",
-            "_flyerUrl": first_image_url(f.get("flyer (optional)", "")),
+            "_flyerUrl": comment_flyer(num) or first_image_url(f.get("flyer (optional)", "")),
             "_tz": tzname,
         })
 
