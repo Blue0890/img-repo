@@ -1,0 +1,325 @@
+#!/usr/bin/env python3
+"""Builds station/events.json (and the flyer images) from the repo's open "event" issues.
+
+Runs in GitHub Actions (see .github/workflows/events.yml). Only issues opened by
+people in ALLOWED_AUTHORS count; anything else is ignored.
+
+Env:
+  GITHUB_TOKEN, GITHUB_REPOSITORY  - set by Actions
+  ALLOWED_AUTHORS                  - comma-separated GitHub logins
+  EVENT_ISSUE                      - issue number that triggered the run (optional; gets a status comment)
+  ISSUES_FILE                      - read issues from this JSON file instead of the API (local testing)
+"""
+import hashlib
+import io
+import json
+import os
+import re
+import sys
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+STATION = os.path.join(ROOT, "station")
+EVENTS_JSON = os.path.join(STATION, "events.json")
+FLYERS = os.path.join(STATION, "flyers")
+CACHE = os.path.join(FLYERS, "cache")
+
+MAX_EVENTS = 6          # the in-world board has this many flyer slots
+FLYER_MAX = 1024        # px, longest side (VRChat allows up to 2048; smaller = less memory for visitors)
+MARKER = "<!-- blue-station-bot -->"
+
+ZONES = {
+    "Central (US)": "America/Chicago",
+    "Eastern (US)": "America/New_York",
+    "Mountain (US)": "America/Denver",
+    "Pacific (US)": "America/Los_Angeles",
+    "UTC": "UTC",
+    "UK": "Europe/London",
+    "Central Europe": "Europe/Berlin",
+}
+
+TOKEN = os.environ.get("GITHUB_TOKEN", "")
+REPO = os.environ.get("GITHUB_REPOSITORY", "Blue0890/img-repo")
+ALLOWED = {a.strip().lower() for a in os.environ.get("ALLOWED_AUTHORS", "Blue0890").split(",") if a.strip()}
+API = "https://api.github.com"
+
+
+# ---------------------------------------------------------------- GitHub API
+
+def api(path, method="GET", body=None):
+    req = urllib.request.Request(API + path, method=method)
+    req.add_header("Accept", "application/vnd.github+json")
+    if TOKEN:
+        req.add_header("Authorization", f"Bearer {TOKEN}")
+    data = None
+    if body is not None:
+        data = json.dumps(body).encode()
+        req.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(req, data=data, timeout=30) as r:
+        txt = r.read().decode()
+        return json.loads(txt) if txt else None
+
+
+def open_event_issues():
+    if os.environ.get("ISSUES_FILE"):
+        with open(os.environ["ISSUES_FILE"]) as f:
+            return json.load(f)
+    out, page = [], 1
+    while True:
+        batch = api(f"/repos/{REPO}/issues?state=open&labels=event&per_page=100&page={page}")
+        out += [i for i in batch if "pull_request" not in i]
+        if len(batch) < 100:
+            return out
+        page += 1
+
+
+def set_status_comment(number, text):
+    """Keeps one bot comment per issue up to date instead of piling up new ones."""
+    if not TOKEN or os.environ.get("ISSUES_FILE"):
+        print(f"[comment #{number}]\n{text}\n")
+        return
+    body = f"{MARKER}\n{text}"
+    for c in api(f"/repos/{REPO}/issues/{number}/comments?per_page=100"):
+        if MARKER in (c.get("body") or ""):
+            api(f"/repos/{REPO}/issues/comments/{c['id']}", "PATCH", {"body": body})
+            return
+    api(f"/repos/{REPO}/issues/{number}/comments", "POST", {"body": body})
+
+
+# ---------------------------------------------------------------- parsing
+
+def form_fields(body):
+    """Issue forms render as '### Label\\n\\nvalue' blocks."""
+    fields = {}
+    for block in re.split(r"^###\s+", body or "", flags=re.M)[1:]:
+        label, _, value = block.partition("\n")
+        value = value.strip()
+        if value == "_No response_":
+            value = ""
+        fields[label.strip().lower()] = value
+    return fields
+
+
+def parse_date(s, now):
+    s = s.strip()
+    m = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        return int(m[1]), int(m[2]), int(m[3])
+    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?", s)
+    if m:
+        y = int(m[3]) if m[3] else now.year
+        if y < 100:
+            y += 2000
+        return y, int(m[1]), int(m[2])
+    raise ValueError(f"I couldn't read the date \"{s}\". Use 2026-11-14 or 11/14/2026.")
+
+
+def parse_time(s):
+    t = s.strip().lower().replace(".", "")
+    m = re.fullmatch(r"(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?", t)
+    if not m:
+        raise ValueError(f"I couldn't read the time \"{s}\". Use 9:00 PM or 21:00.")
+    h, mi, ap = int(m[1]), int(m[2] or 0), m[3]
+    if ap:
+        if not 1 <= h <= 12:
+            raise ValueError(f"\"{s}\" isn't a real time.")
+        h = h % 12 + (12 if ap.startswith("p") else 0)
+    if h > 23 or mi > 59:
+        raise ValueError(f"\"{s}\" isn't a real time.")
+    return h, mi
+
+
+def parse_link(s):
+    """Returns (link, worldId, instanceId) from a VRChat link, or blanks."""
+    s = (s or "").strip()
+    if not s:
+        return "", "", ""
+    m = re.search(r"https?://\S+", s)
+    url = m[0].rstrip(".,>") if m else s
+    while url.endswith(")") and url.count(")") > url.count("("):   # markdown "(link)" wrapper
+        url = url[:-1]
+    q = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+    world = (q.get("worldId") or [""])[0]
+    inst = (q.get("instanceId") or [""])[0]
+    if not world:
+        wm = re.search(r"wrld_[0-9a-fA-F-]{36}", s)
+        world = wm[0] if wm else ""
+    if world and ":" in world and not inst:          # "wrld_x:12345~group(...)" form
+        world, inst = world.split(":", 1)
+    if world and inst:
+        link = "https://vrchat.com/home/launch?" + urllib.parse.urlencode({"worldId": world, "instanceId": inst})
+    elif world:
+        link = f"https://vrchat.com/home/world/{world}"
+    else:
+        link = url if url.startswith("http") else ""
+    return link, world, inst
+
+
+def first_image_url(s):
+    m = re.search(r"!\[[^\]]*\]\((\S+?)\)", s or "") or re.search(r"<img[^>]+src=\"([^\"]+)\"", s or "")
+    if m:
+        return m[1]
+    m = re.search(r"https?://\S+\.(?:png|jpe?g|webp|gif)\b", s or "", re.I)
+    return m[0] if m else ""
+
+
+# ---------------------------------------------------------------- flyers
+
+def fetch(url):
+    # Attachment links redirect to signed storage URLs; send the token only to GitHub itself.
+    for auth in (False, True):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "blue-station"})
+            if auth and TOKEN:
+                req.add_header("Authorization", f"Bearer {TOKEN}")
+            with urllib.request.urlopen(req, timeout=60) as r:
+                return r.read()
+        except Exception as e:  # noqa: BLE001
+            last = e
+    raise last
+
+
+def cached_flyer(url):
+    """Downloads and shrinks a flyer once; returns the cache path."""
+    from PIL import Image
+    os.makedirs(CACHE, exist_ok=True)
+    path = os.path.join(CACHE, hashlib.sha1(url.encode()).hexdigest()[:16] + ".jpg")
+    if not os.path.exists(path):
+        im = Image.open(io.BytesIO(fetch(url)))
+        im.seek(0)
+        im = im.convert("RGB")
+        im.thumbnail((FLYER_MAX, FLYER_MAX), Image.LANCZOS)
+        im.save(path, "JPEG", quality=88, optimize=True, progressive=False)
+    return path
+
+
+# ---------------------------------------------------------------- main
+
+def build():
+    now = datetime.now(timezone.utc)
+    events, problems = [], {}
+    for issue in open_event_issues():
+        num = issue["number"]
+        if issue["user"]["login"].lower() not in ALLOWED:
+            continue
+        f = form_fields(issue.get("body"))
+        try:
+            name = f.get("event name") or re.sub(r"^event:\s*", "", issue["title"], flags=re.I).strip()
+            if not name:
+                raise ValueError("The event needs a name.")
+            y, mo, d = parse_date(f.get("date", ""), now)
+            h, mi = parse_time(f.get("start time", ""))
+            tzname = f.get("time zone") or "Central (US)"
+            tz = ZoneInfo(ZONES.get(tzname, "America/Chicago"))
+            start = datetime(y, mo, d, h, mi, tzinfo=tz).astimezone(timezone.utc)
+            try:
+                hours = float((f.get("length in hours") or "3").split()[0])
+            except ValueError:
+                hours = 3.0
+            hours = min(max(hours, 0.25), 24)
+            end = start + timedelta(hours=hours)
+        except ValueError as e:
+            problems[num] = str(e)
+            continue
+        if end <= now:
+            continue
+        link, world_id, inst_id = parse_link(f.get("instance link (optional)", ""))
+        events.append({
+            "issue": num,
+            "title": name[:80],
+            "group": f.get("group") or "Blue Star",
+            "start": start.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "end": end.strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "startUnix": int(start.timestamp()),
+            "endUnix": int(end.timestamp()),
+            "world": (f.get("world") or "")[:60],
+            "worldId": world_id,
+            "instanceId": inst_id,
+            "link": link,
+            "about": re.sub(r"\s+", " ", f.get("description (optional)", ""))[:200],
+            "flyer": "",
+            "_flyerUrl": first_image_url(f.get("flyer (optional)", "")),
+            "_tz": tzname,
+        })
+
+    events.sort(key=lambda e: e["startUnix"])
+    shown, hidden = events[:MAX_EVENTS], events[MAX_EVENTS:]
+
+    # Flyers go into fixed slots 1..6 in the order the events are shown.
+    from shutil import copyfile
+    os.makedirs(FLYERS, exist_ok=True)
+    used_cache = set()
+    for slot, e in enumerate(shown, 1):
+        url = e.pop("_flyerUrl")
+        if url:
+            try:
+                src = cached_flyer(url)
+                used_cache.add(os.path.basename(src))
+                dst = os.path.join(FLYERS, f"{slot}.jpg")
+                if not (os.path.exists(dst) and open(dst, "rb").read() == open(src, "rb").read()):
+                    copyfile(src, dst)
+                e["flyer"] = f"flyers/{slot}.jpg"
+            except Exception as ex:  # noqa: BLE001
+                problems[e["issue"]] = f"The event is up, but I couldn't load the flyer image ({ex})."
+    for e in hidden:
+        e.pop("_flyerUrl", None)
+    # Remove slot files and cached images nothing uses any more.
+    for fn in os.listdir(FLYERS):
+        m = re.fullmatch(r"(\d+)\.jpg", fn)
+        if m and not any(e["flyer"] == f"flyers/{fn}" for e in shown):
+            os.remove(os.path.join(FLYERS, fn))
+    if os.path.isdir(CACHE):
+        for fn in os.listdir(CACHE):
+            if fn not in used_cache:
+                os.remove(os.path.join(CACHE, fn))
+
+    tz_of = {e["issue"]: e.pop("_tz") for e in events}
+    out = {"updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "events": shown}
+
+    old = None
+    if os.path.exists(EVENTS_JSON):
+        with open(EVENTS_JSON) as fh:
+            try:
+                old = json.load(fh)
+            except json.JSONDecodeError:
+                old = None
+    if not old or old.get("events") != shown:
+        with open(EVENTS_JSON, "w") as fh:
+            json.dump(out, fh, indent=2, ensure_ascii=False)
+            fh.write("\n")
+        print(f"events.json updated: {len(shown)} event(s)")
+    else:
+        print("events.json unchanged")
+
+    # Status comment on the issue that triggered this run.
+    trig = os.environ.get("EVENT_ISSUE")
+    if trig and trig.isdigit():
+        n = int(trig)
+        e = next((x for x in events if x["issue"] == n), None)
+        if n in problems and not e:
+            set_status_comment(n, f"⚠️ This event isn't on the board yet: {problems[n]}\n\nEdit the issue to fix it.")
+        elif e:
+            zone = ZoneInfo(ZONES.get(tz_of[n], "UTC"))
+            lines = [
+                "✅ **On the board.** It shows up in the world and on the events page within a few minutes.",
+                "",
+                f"- **{e['title']}** ({e['group']})",
+                f"- Starts {datetime.fromtimestamp(e['startUnix'], zone).strftime('%a %b %d, %I:%M %p')} {tz_of[n]}",
+                f"- Ends {datetime.fromtimestamp(e['endUnix'], zone).strftime('%I:%M %p')}",
+                f"- Instance link: {'yes' if e['instanceId'] else ('world only' if e['worldId'] else 'none yet')}",
+                f"- Flyer: {'yes' if e['flyer'] else 'none'}",
+            ]
+            if e not in shown:
+                lines.append(f"\n_Only the next {MAX_EVENTS} events fit on the board; this one will appear when a slot frees up._")
+            if n in problems:
+                lines.append(f"\n⚠️ {problems[n]}")
+            set_status_comment(n, "\n".join(lines))
+    for n, msg in problems.items():
+        print(f"#{n}: {msg}", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    build()

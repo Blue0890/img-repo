@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "welcome": {
+    "title": "Welcome to Blue Station",
+    "text": "Make yourself at home. Upcoming Blue Star events are on the board."
+  },
+  "notice": "",
+  "featured": "The Fifth Star",
+  "groups": [
+    {
+      "name": "The Fifth Star",
+      "tagline": "Come find us somewhere between the infinite cosmos and the edge of your door",
+      "link": ""
+    },
+    {
+      "name": "Blue Shift Eclipse",
+      "tagline": "Where the star's dark side shines",
+      "link": ""
+    }
+  ],
+  "photos": [
+    { "slot": "01", "caption": "" },
+    { "slot": "02", "caption": "" },
+    { "slot": "03", "caption": "" },
+    { "slot": "04", "caption": "" },
+    { "slot": "05", "caption": "" },
+    { "slot": "06", "caption": "" },
+    { "slot": "07", "caption": "" },
+    { "slot": "08", "caption": "" }
+  ]
+}

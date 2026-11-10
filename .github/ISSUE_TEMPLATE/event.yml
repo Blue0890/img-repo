@@ -1,0 +1,89 @@
+name: "⭐ New Blue Star event"
+description: Post an event to the Blue Station board and the events page.
+title: "Event: "
+labels: ["event"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fill this in and submit. The board updates a few minutes later.
+        **Edit** this issue to change the event. **Close** it to take the event down.
+        Events disappear by themselves once they're over.
+  - type: input
+    id: name
+    attributes:
+      label: Event name
+      placeholder: "Friday night at the bar"
+    validations:
+      required: true
+  - type: dropdown
+    id: group
+    attributes:
+      label: Group
+      options:
+        - The Fifth Star
+        - Blue Shift Eclipse
+        - Blue Star Cinema
+        - Blue Star Games
+        - Blue Star Gambling
+        - Blue Star
+    validations:
+      required: true
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      description: Year-month-day
+      placeholder: "2026-11-14"
+    validations:
+      required: true
+  - type: input
+    id: time
+    attributes:
+      label: Start time
+      description: "Like 9:00 PM or 21:00"
+      placeholder: "9:00 PM"
+    validations:
+      required: true
+  - type: dropdown
+    id: tz
+    attributes:
+      label: Time zone
+      options:
+        - Central (US)
+        - Eastern (US)
+        - Mountain (US)
+        - Pacific (US)
+        - UTC
+        - UK
+        - Central Europe
+    validations:
+      required: true
+  - type: input
+    id: hours
+    attributes:
+      label: Length in hours
+      value: "3"
+  - type: input
+    id: where
+    attributes:
+      label: World
+      description: The world's name, shown on the board.
+      placeholder: "Thunder Tavern"
+  - type: textarea
+    id: link
+    attributes:
+      label: Instance link (optional)
+      description: |
+        Paste the instance's link from the VRChat website (vrchat.com/home/launch?worldId=...&instanceId=...) or just the world's link.
+        You can add or change this later, for example once the instance is open.
+  - type: textarea
+    id: flyer
+    attributes:
+      label: Flyer (optional)
+      description: Drag or paste one image here. It gets resized for VRChat automatically.
+  - type: textarea
+    id: about
+    attributes:
+      label: Description (optional)
+      description: One or two short lines.

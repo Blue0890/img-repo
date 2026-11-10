@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blue Star · Events</title>
+<meta name="description" content="Upcoming Blue Star events in VRChat: The Fifth Star, Blue Shift Eclipse and more.">
+<style>
+  :root {
+    --night: #070a18;
+    --deep: #0d1330;
+    --panel: rgba(20, 28, 64, 0.62);
+    --line: rgba(150, 175, 255, 0.16);
+    --ink: #e9ecff;
+    --dim: #9aa3cc;
+    --blue: #5b8cff;
+    --gold: #d8b25e;
+    --red: #ff4f7b;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    color: var(--ink);
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(1200px 700px at 80% -10%, rgba(91, 140, 255, 0.22), transparent 60%),
+      radial-gradient(900px 600px at -10% 110%, rgba(216, 178, 94, 0.10), transparent 60%),
+      var(--night);
+  }
+  body::before {               /* faint star field */
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: .55;
+    background-image:
+      radial-gradient(1px 1px at 12% 18%, #fff, transparent),
+      radial-gradient(1px 1px at 72% 34%, #cfe0ff, transparent),
+      radial-gradient(1.5px 1.5px at 38% 72%, #fff, transparent),
+      radial-gradient(1px 1px at 88% 82%, #ffe9c4, transparent),
+      radial-gradient(1px 1px at 55% 12%, #fff, transparent),
+      radial-gradient(1px 1px at 22% 88%, #cfe0ff, transparent);
+  }
+  main { position: relative; max-width: 880px; margin: 0 auto; padding: 56px 20px 72px; }
+  header { display: flex; align-items: center; gap: 18px; margin-bottom: 36px; }
+  .mark { width: 46px; height: 64px; flex: none; filter: drop-shadow(0 0 14px rgba(91,140,255,.6)); }
+  h1 {
+    margin: 0; font: 600 clamp(28px, 6vw, 42px)/1.1 Georgia, "Times New Roman", serif;
+    letter-spacing: .02em;
+  }
+  .sub { margin: 4px 0 0; color: var(--dim); font-size: 15px; }
+  .notice {
+    margin: 0 0 24px; padding: 12px 16px; border-radius: 12px;
+    border: 1px solid rgba(216,178,94,.35); background: rgba(216,178,94,.08); color: #f3e3bd;
+  }
+  .list { display: grid; gap: 18px; }
+  .card {
+    --accent: var(--blue);
+    display: grid; grid-template-columns: 200px 1fr; gap: 0; overflow: hidden;
+    border-radius: 18px; border: 1px solid var(--line); background: var(--panel);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 20px 50px rgba(0,0,0,.35);
+  }
+  .card.g-fifth { --accent: var(--gold); }
+  .card.g-eclipse { --accent: var(--red); }
+  .card .art {
+    min-height: 170px; background: linear-gradient(160deg, var(--deep), #1b2560);
+    background-size: cover; background-position: center; position: relative;
+  }
+  .card .art.none {
+    background:
+      radial-gradient(closest-side, rgba(91,140,255,.35), transparent 70%) center / 120px 160px no-repeat,
+      linear-gradient(160deg, var(--deep), #1b2560);
+  }
+  .card .art::after {
+    content: ""; position: absolute; inset: 0;
+    box-shadow: inset -1px 0 0 var(--line);
+  }
+  .card .body { padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 6px; }
+  .group {
+    font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .live {
+    letter-spacing: .08em; font-weight: 700; color: #fff; background: var(--red);
+    padding: 2px 8px; border-radius: 999px; font-size: 11px;
+    box-shadow: 0 0 16px rgba(255,79,123,.6); animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 50% { box-shadow: 0 0 4px rgba(255,79,123,.3); } }
+  h2 { margin: 0; font: 600 22px/1.25 Georgia, "Times New Roman", serif; }
+  .when { color: var(--ink); font-weight: 500; }
+  .meta { color: var(--dim); font-size: 14px; }
+  .about { margin: 4px 0 0; color: #c9cfee; font-size: 15px; }
+  .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 9px 16px; border-radius: 999px; text-decoration: none;
+    font-weight: 600; font-size: 14px; color: #0a0f24;
+    background: linear-gradient(180deg, #fff, #cdd8ff);
+  }
+  .btn.ghost { color: var(--ink); background: transparent; border: 1px solid var(--line); }
+  .empty {
+    padding: 40px 24px; text-align: center; color: var(--dim);
+    border: 1px dashed var(--line); border-radius: 18px;
+  }
+  .groups { margin-top: 48px; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .gcard { padding: 16px 18px; border-radius: 14px; border: 1px solid var(--line); background: rgba(13,19,48,.5); }
+  .gcard b { display: block; font: 600 17px Georgia, serif; }
+  .gcard i { color: var(--dim); font-size: 14px; }
+  footer { margin-top: 40px; color: var(--dim); font-size: 13px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  footer a { color: var(--dim); }
+  @media (max-width: 620px) {
+    .card { grid-template-columns: 1fr; }
+    .card .art { min-height: 180px; }
+    .card .art.none { display: none; }
+    .card .art::after { box-shadow: inset 0 -1px 0 var(--line); }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <svg class="mark" viewBox="-1.2 -1.6 2.4 3.2" aria-hidden="true">
+      <path id="star" fill="#5b8cff" stroke="#0a0f24" stroke-width="0.12"/>
+    </svg>
+    <div>
+      <h1>Blue Star Events</h1>
+      <p class="sub">What's on next across the Blue Star groups in VRChat. Times are shown in your time zone.</p>
+    </div>
+  </header>
+
+  <p class="notice" id="notice" hidden></p>
+  <section class="list" id="list" aria-live="polite"><div class="empty">Loading…</div></section>
+  <section class="groups" id="groups"></section>
+
+  <footer>
+    <span id="updated"></span>
+    <a href="https://github.com/Blue0890/img-repo/issues/new?template=event.yml">Post an event</a>
+  </footer>
+</main>
+
+<script>
+  // The logo star: superellipse |x/a|^p + |y/b|^p = 1, p 0.55, height/width 1.46.
+  (function () {
+    const p = 0.55, a = 1, b = 1.46, pts = [];
+    for (let i = 0; i < 360; i++) {
+      const t = i * Math.PI / 180, c = Math.cos(t), s = Math.sin(t);
+      pts.push((a * Math.sign(c) * Math.abs(c) ** (2 / p)).toFixed(3) + "," +
+               (-b * Math.sign(s) * Math.abs(s) ** (2 / p)).toFixed(3));
+    }
+    document.getElementById("star").setAttribute("d", "M" + pts.join("L") + "Z");
+  })();
+
+  const groupClass = g => /fifth/i.test(g) ? "g-fifth" : /eclipse/i.test(g) ? "g-eclipse" : "";
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmtDay = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "short", day: "numeric" });
+  const fmtTime = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+  const fmtEnd = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+
+  function relative(ms) {
+    const m = Math.round(ms / 60000);
+    if (m < 60) return `in ${m} min`;
+    const h = Math.round(m / 60);
+    if (h < 36) return `in ${h} hour${h === 1 ? "" : "s"}`;
+    const d = Math.round(h / 24);
+    return `in ${d} days`;
+  }
+
+  async function load() {
+    const bust = "?t=" + Math.floor(Date.now() / 60000);
+    const [ev, world] = await Promise.all([
+      fetch("events.json" + bust).then(r => r.json()),
+      fetch("world.json" + bust).then(r => r.json()).catch(() => ({})),
+    ]);
+
+    if (world.notice) { const n = document.getElementById("notice"); n.textContent = world.notice; n.hidden = false; }
+
+    const now = Date.now();
+    const events = (ev.events || []).filter(e => e.endUnix * 1000 > now)
+      .sort((a, b) => a.startUnix - b.startUnix);
+    const list = document.getElementById("list");
+    list.innerHTML = events.length ? "" :
+      '<div class="empty">No events posted right now. Check back soon.</div>';
+
+    for (const e of events) {
+      const start = new Date(e.startUnix * 1000), end = new Date(e.endUnix * 1000);
+      const live = start <= now && now < end;
+      const card = document.createElement("article");
+      card.className = "card " + groupClass(e.group);
+      card.innerHTML = `
+        <div class="art${e.flyer ? "" : " none"}" ${e.flyer ? `style="background-image:url('${esc(e.flyer)}')"` : ""}></div>
+        <div class="body">
+          <div class="group">${esc(e.group)} ${live ? '<span class="live">LIVE NOW</span>' : ""}</div>
+          <h2>${esc(e.title)}</h2>
+          <div class="when">${fmtDay.format(start)} · ${fmtTime.format(start)} – ${fmtEnd.format(end)}</div>
+          <div class="meta">${live ? "Happening now" : relative(start - now)}${e.world ? " · " + esc(e.world) : ""}</div>
+          ${e.about ? `<p class="about">${esc(e.about)}</p>` : ""}
+          <div class="actions">
+            ${e.link ? `<a class="btn" href="${esc(e.link)}" target="_blank" rel="noopener">${e.instanceId ? "Join in VRChat" : "Open world"}</a>` : ""}
+          </div>
+        </div>`;
+      list.appendChild(card);
+    }
+
+    const groups = document.getElementById("groups");
+    groups.innerHTML = (world.groups || []).map(g => `
+      <div class="gcard">
+        <b>${g.link ? `<a href="${esc(g.link)}" style="color:inherit" target="_blank" rel="noopener">${esc(g.name)}</a>` : esc(g.name)}</b>
+        <i>${esc(g.tagline)}</i>
+      </div>`).join("");
+
+    if (ev.updated) document.getElementById("updated").textContent =
+      "Updated " + new Date(ev.updated).toLocaleString();
+  }
+
+  load().catch(() => {
+    document.getElementById("list").innerHTML = '<div class="empty">Couldn\'t load events right now.</div>';
+  });
+  setInterval(() => load().catch(() => {}), 5 * 60 * 1000);
+</script>
+</body>
+</html>
