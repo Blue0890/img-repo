@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-10T01:21:57Z",
+  "updated": "2026-11-10T01:27:15Z",
   "events": [
     {
       "issue": 2,
@@ -14,7 +14,7 @@
       "instanceId": "",
       "link": "",
       "about": "This is still, a test, and not real.",
-      "flyer": ""
+      "flyer": "flyers/1.jpg"
     }
   ]
 }
