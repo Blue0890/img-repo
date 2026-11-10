@@ -10,7 +10,6 @@ on:
 permissions:
   contents: write
   issues: write
-  pages: write
 
 concurrency:
   group: event-board
@@ -63,10 +62,3 @@ jobs:
             python .github/scripts/build_events.py
           done
           exit 1
-
-      - name: Rebuild GitHub Pages
-        if: steps.commit.outputs.changed == 'true'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh api -X POST "repos/${{ github.repository }}/pages/builds"

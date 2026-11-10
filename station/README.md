@@ -30,6 +30,6 @@ Adding *new* slots (another photo frame, a new sign) needs one world re-upload, 
 ## How it works (for Claude)
 
 - `.github/ISSUE_TEMPLATE/event.yml`: the event form.
-- `.github/workflows/events.yml` runs `.github/scripts/build_events.py` on issue changes and every 3 hours. It rebuilds `events.json` from open issues labelled `event` by allowed authors (`ALLOWED_AUTHORS` in the workflow), resizes flyers to `flyers/1.jpg` … `6.jpg` in board order (cached in `flyers/cache/`), comments the status on the issue, commits as github-actions[bot] and asks Pages to rebuild.
+- `.github/workflows/events.yml` runs `.github/scripts/build_events.py` on issue changes and every 3 hours. It rebuilds `events.json` from open issues labelled `event` by allowed authors (`ALLOWED_AUTHORS` in the workflow), resizes flyers to `flyers/1.jpg` … `6.jpg` in board order (cached in `flyers/cache/`), comments the status on the issue and commits as github-actions[bot]; that push makes GitHub Pages republish on its own.
 - `events.json`: `events[]` with `title`, `group`, `startUnix`/`endUnix` (UTC seconds), `world`, `worldId`, `instanceId`, `link`, `about`, `flyer` (path relative to this folder, or empty).
 - VRChat limits: one string or image download every 5 s per world, images 2048 px max, URLs must be fixed at upload (`*.github.io` is a trusted domain).
