@@ -1,4 +1,20 @@
 {
-  "updated": "2026-11-11T10:56:44Z",
-  "events": []
+  "updated": "2026-11-12T00:47:51Z",
+  "events": [
+    {
+      "issue": 3,
+      "title": "Movie night collab",
+      "group": "The Fifth Star",
+      "start": "2026-11-15T01:00:00Z",
+      "end": "2026-11-15T05:00:00Z",
+      "startUnix": 1794704400,
+      "endUnix": 1794718800,
+      "world": "Popcorn Palace",
+      "worldId": "",
+      "instanceId": "",
+      "link": "",
+      "about": "A Double Movie Night hosted for Double the Groups! Brought to you by The Fifth Star and our good friends from The Workshop, come stop by and enjoy the shows ^^",
+      "flyer": "flyers/1.jpg"
+    }
+  ]
 }
