@@ -1,21 +1,6 @@
 {
-  "updated": "2026-11-14T00:00:13Z",
+  "updated": "2026-11-14T10:24:53Z",
   "events": [
-    {
-      "issue": 4,
-      "title": "Fifth Star Bar",
-      "group": "The Fifth Star",
-      "start": "2026-11-14T05:00:00Z",
-      "end": "2026-11-14T08:00:00Z",
-      "startUnix": 1794632400,
-      "endUnix": 1794643200,
-      "world": "Mafia Bar",
-      "worldId": "",
-      "instanceId": "",
-      "link": "",
-      "about": "Come stop by and have 2 beers, or maybe even 2 more beers.",
-      "flyer": "flyers/1.jpg"
-    },
     {
       "issue": 3,
       "title": "Movie night collab",
@@ -29,7 +14,7 @@
       "instanceId": "",
       "link": "",
       "about": "A Double Movie Night hosted for Double the Groups! Brought to you by The Fifth Star and our good friends from The Workshop, come stop by and enjoy the shows ^^",
-      "flyer": "flyers/2.jpg"
+      "flyer": "flyers/1.jpg"
     }
   ]
 }
