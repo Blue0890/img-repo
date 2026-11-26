@@ -1,4 +1,20 @@
 {
-  "updated": "2026-11-15T06:30:33Z",
-  "events": []
+  "updated": "2026-11-26T00:20:04Z",
+  "events": [
+    {
+      "issue": 5,
+      "title": "Saturday at 12T",
+      "group": "The Fifth Star",
+      "start": "2026-11-29T03:00:00Z",
+      "end": "2026-11-29T08:00:00Z",
+      "startUnix": 1795921200,
+      "endUnix": 1795939200,
+      "world": "12Twilights",
+      "worldId": "",
+      "instanceId": "",
+      "link": "",
+      "about": "Opening at the new bar world on Saturday! Come stop by and see us, I promise you won’t get shot. Maybe",
+      "flyer": ""
+    }
+  ]
 }
