@@ -25,6 +25,12 @@ The images in the top of the repo are untouched. Worlds may be loading them by t
 - **Text:** edit `world.json` (welcome message, a notice banner, the featured group, group taglines and links, photo captions).
 - The world picks up changes when someone joins. GitHub Pages can take a few minutes to publish.
 
+### The wall of shame (Eclipse room, by the main door)
+
+- **Photos:** replace a file in `shame/` with a new image **of the same name**. `01.jpg`, `02.jpg` and `03.jpg` are the wide cards (16:9, e.g. 1280 × 720); `04.jpg`, `05.jpg` and `06.jpg` are the tall ones (9:16, e.g. 720 × 1280). A picture of another shape is stretched to fit its card, so crop it first.
+- **Words under each photo:** in `world.json`, the `"shame"` list has one line per card (`"slot": "01"` … `"06"`). Type the text between the quotes after `"caption"`. One or two short lines fit; longer text shrinks, then is cut with "…".
+- New photos show for people who join after the change. New words show within half an hour for people already in the world.
+
 Adding *new* slots (another photo frame, a new sign) needs one world re-upload, because VRChat only allows web links that are built into the world.
 
 ## How it works (for Claude)

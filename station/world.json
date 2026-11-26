@@ -27,5 +27,13 @@
     { "slot": "06", "caption": "" },
     { "slot": "07", "caption": "" },
     { "slot": "08", "caption": "" }
+  ],
+  "shame": [
+    { "slot": "01", "caption": "" },
+    { "slot": "02", "caption": "" },
+    { "slot": "03", "caption": "" },
+    { "slot": "04", "caption": "" },
+    { "slot": "05", "caption": "" },
+    { "slot": "06", "caption": "" }
   ]
 }
